@@ -86,8 +86,8 @@ class AdminController extends Controller
             'category_id' => 'required|exists:categories,id',
             'how_to_use' => 'nullable|string',
             'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'tags' => 'nullable|array',
-            'tags.*' => 'exists:tags,id',
+            'tags' => 'nullable|array|max:10',
+            'tags.*' => 'string|max:50',
         ]);
 
         $validated['title'] = strip_tags($validated['title']);
@@ -97,14 +97,15 @@ class AdminController extends Controller
         $validated['is_featured'] = $request->boolean('is_featured');
         $validated['status'] = 'approved';
 
+        if (isset($validated['tags'])) {
+            $validated['tags'] = array_map('strtolower', array_map('trim', $validated['tags']));
+            $validated['tags'] = array_unique(array_filter($validated['tags']));
+        }
+
         $path = $request->file('image')->store('prompts', 'public');
         $validated['image_url'] = '/storage/' . $path;
 
         $prompt = Prompt::create($validated);
-        
-        if ($request->has('tags')) {
-            $prompt->tags()->sync($request->tags);
-        }
 
         return redirect()->route('admin.prompts.index')->with('success', 'Prompt created successfully!');
     }
@@ -128,8 +129,8 @@ class AdminController extends Controller
             'category_id' => 'required|exists:categories,id',
             'how_to_use' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5120',
-            'tags' => 'nullable|array',
-            'tags.*' => 'exists:tags,id',
+            'tags' => 'nullable|array|max:10',
+            'tags.*' => 'string|max:50',
         ]);
 
         $validated['title'] = strip_tags($validated['title']);
@@ -138,16 +139,17 @@ class AdminController extends Controller
         $validated['how_to_use'] = $validated['how_to_use'] ? strip_tags($validated['how_to_use']) : null;
         $validated['is_featured'] = $request->boolean('is_featured');
 
+        if (isset($validated['tags'])) {
+            $validated['tags'] = array_map('strtolower', array_map('trim', $validated['tags']));
+            $validated['tags'] = array_unique(array_filter($validated['tags']));
+        }
+
         if ($request->hasFile('image')) {
             $path = $request->file('image')->store('prompts', 'public');
             $validated['image_url'] = '/storage/' . $path;
         }
 
         $prompt->update($validated);
-        
-        if ($request->has('tags')) {
-            $prompt->tags()->sync($request->tags);
-        }
 
         return redirect()->route('admin.prompts.index')->with('success', 'Prompt updated successfully');
     }
@@ -156,6 +158,23 @@ class AdminController extends Controller
     {
         Prompt::findOrFail($id)->delete();
         return redirect()->route('admin.prompts.index')->with('success', 'Prompt deleted successfully');
+    }
+
+    public function togglePin($id)
+    {
+        $prompt = Prompt::findOrFail($id);
+        
+        if (!$prompt->is_pinned) {
+            $pinnedCount = Prompt::where('is_pinned', true)->count();
+            if ($pinnedCount >= 6) {
+                return back()->withErrors(['error' => 'Maximum 6 prompts can be pinned. Unpin another prompt first.']);
+            }
+        }
+        
+        $prompt->update(['is_pinned' => !$prompt->is_pinned]);
+        $message = $prompt->is_pinned ? 'Prompt pinned successfully!' : 'Prompt unpinned successfully!';
+        
+        return redirect()->back()->with('success', $message);
     }
 
     public function blogs()

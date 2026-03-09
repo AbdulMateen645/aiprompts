@@ -43,4 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user/prompts/stats', [UserPromptController::class, 'stats']);
     Route::get('/user/prompts', [UserPromptController::class, 'index']);
     Route::post('/user/prompts', [UserPromptController::class, 'store']);
+    Route::get('/user/prompts/{id}', [UserPromptController::class, 'show']);
+    Route::put('/user/prompts/{id}', [UserPromptController::class, 'update']);
+    Route::delete('/user/prompts/{id}', [UserPromptController::class, 'destroy']);
 });

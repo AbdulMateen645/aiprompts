@@ -10,8 +10,11 @@ class PromptController extends Controller
 {
     public function index()
     {
-        $prompts = Prompt::with(['category', 'tags'])
+        $prompts = Prompt::with(['category'])
             ->approved()
+            ->orderByDesc('is_pinned')
+            ->orderByDesc('likes')
+            ->orderByDesc('views')
             ->latest()
             ->get();
         return response()->json($prompts);
@@ -19,7 +22,7 @@ class PromptController extends Controller
 
     public function show($slug)
     {
-        $prompt = Prompt::with(['category', 'tags'])
+        $prompt = Prompt::with(['category'])
             ->where('slug', $slug)
             ->approved()
             ->firstOrFail();
@@ -52,7 +55,7 @@ class PromptController extends Controller
 
     public function featured()
     {
-        $prompts = Prompt::with(['category', 'tags'])
+        $prompts = Prompt::with(['category'])
             ->where('is_featured', true)
             ->approved()
             ->latest()
@@ -62,7 +65,7 @@ class PromptController extends Controller
 
     public function byCategory($categorySlug)
     {
-        $prompts = Prompt::with(['category', 'tags'])
+        $prompts = Prompt::with(['category'])
             ->whereHas('category', function($query) use ($categorySlug) {
                 $query->where('slug', $categorySlug);
             })
@@ -80,7 +83,7 @@ class PromptController extends Controller
         
         $query = $validated['q'];
         
-        $prompts = Prompt::with(['category', 'tags'])
+        $prompts = Prompt::with(['category'])
             ->where(function($q) use ($query) {
                 $q->where('title', 'like', "%{$query}%")
                   ->orWhere('prompt_text', 'like', "%{$query}%")

@@ -40,6 +40,13 @@
         </div>
 
         <div class="mb-4">
+            <label class="block text-gray-700 font-bold mb-2">SEO Tags (5 required)</label>
+            <input type="text" id="tagInput" class="w-full border rounded px-3 py-2 mb-2" placeholder="Type tag and press Enter (e.g., cyberpunk, portrait)" maxlength="50">
+            <div id="tagsContainer" class="flex flex-wrap gap-2 mb-2"></div>
+            <p class="text-sm text-gray-500"><span id="tagCount">0</span>/10 tags • Press Enter or comma to add • # symbol added automatically</p>
+        </div>
+
+        <div class="mb-4">
             <label class="block text-gray-700 font-bold mb-2">Image</label>
             <input type="file" name="image" class="w-full border rounded px-3 py-2" accept="image/*" required>
             <p class="text-sm text-gray-500 mt-1">Max size: 10MB. Supported: JPG, PNG, GIF, WEBP, BMP</p>
@@ -58,4 +65,57 @@
         </div>
     </form>
 </div>
+
+<script>
+let tags = [];
+const tagInput = document.getElementById('tagInput');
+const tagsContainer = document.getElementById('tagsContainer');
+const tagCount = document.getElementById('tagCount');
+
+function addTag(tag) {
+    tag = tag.trim().toLowerCase();
+    if (tag && !tags.includes(tag) && tags.length < 10) {
+        tags.push(tag);
+        renderTags();
+    }
+    tagInput.value = '';
+}
+
+function removeTag(index) {
+    tags.splice(index, 1);
+    renderTags();
+}
+
+function renderTags() {
+    tagsContainer.innerHTML = tags.map((tag, index) => `
+        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+            #${tag}
+            <button type="button" onclick="removeTag(${index})" class="hover:text-blue-900">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </span>
+    `).join('');
+    tagCount.textContent = tags.length;
+    tagCount.style.color = tags.length < 5 ? '#dc2626' : '#6b7280';
+    
+    // Update hidden inputs
+    document.querySelectorAll('input[name^="tags["]').forEach(el => el.remove());
+    tags.forEach((tag, index) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = `tags[${index}]`;
+        input.value = tag;
+        tagsContainer.appendChild(input);
+    });
+}
+
+tagInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ',') {
+        e.preventDefault();
+        addTag(tagInput.value);
+    }
+});
+</script>
 @endsection

@@ -40,6 +40,7 @@ Route::prefix('admin')->name('admin.')->middleware('admin.auth')->group(function
     Route::get('/prompts/pending', [AdminController::class, 'pendingPrompts'])->name('prompts.pending');
     Route::post('/prompts/{id}/approve', [AdminController::class, 'approvePrompt'])->name('prompts.approve');
     Route::post('/prompts/{id}/reject', [AdminController::class, 'rejectPrompt'])->name('prompts.reject');
+    Route::post('/prompts/{id}/toggle-pin', [AdminController::class, 'togglePin'])->name('prompts.togglePin');
     Route::get('/prompts/create', [AdminController::class, 'createPrompt'])->name('prompts.create');
     Route::post('/prompts', [AdminController::class, 'storePrompt'])->name('prompts.store');
     Route::get('/prompts/{id}/edit', [AdminController::class, 'editPrompt'])->name('prompts.edit');

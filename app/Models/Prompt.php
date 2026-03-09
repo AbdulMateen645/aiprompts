@@ -21,6 +21,7 @@ class Prompt extends Model
         'category_id',
         'how_to_use',
         'is_featured',
+        'is_pinned',
         'pricing_type',
         'price',
         'is_premium',
@@ -29,13 +30,16 @@ class Prompt extends Model
         'submitted_by',
         'reviewed_by',
         'reviewed_at',
-        'rejection_reason'
+        'rejection_reason',
+        'tags'
     ];
 
     protected $casts = [
         'is_featured' => 'boolean',
+        'is_pinned' => 'boolean',
         'is_premium' => 'boolean',
         'price' => 'decimal:2',
+        'tags' => 'array',
     ];
 
     protected $appends = ['full_image_url'];
@@ -74,11 +78,6 @@ class Prompt extends Model
     public function category()
     {
         return $this->belongsTo(Category::class);
-    }
-
-    public function tags()
-    {
-        return $this->belongsToMany(Tag::class);
     }
 
     public function submittedBy()
